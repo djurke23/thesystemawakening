@@ -130,6 +130,46 @@ class SystemAudio {
       osc.stop(this.ctx.currentTime + 0.18);
     } catch (_) {}
   }
+
+  // Solo Leveling Death / Penalty doom impact + glitch
+  playDeath() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      // 1. Heavy sub-bass thud (doom impact)
+      const bassOsc = this.ctx.createOscillator();
+      const bassGain = this.ctx.createGain();
+      bassOsc.type = 'sawtooth';
+      bassOsc.frequency.setValueAtTime(150, this.ctx.currentTime);
+      bassOsc.frequency.exponentialRampToValueAtTime(32, this.ctx.currentTime + 0.38);
+
+      bassGain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+      bassGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.38);
+
+      bassOsc.connect(bassGain);
+      bassGain.connect(this.ctx.destination);
+      bassOsc.start();
+      bassOsc.stop(this.ctx.currentTime + 0.38);
+
+      // 2. High discordant glitch alarm
+      const glitchOsc = this.ctx.createOscillator();
+      const glitchGain = this.ctx.createGain();
+      glitchOsc.type = 'square';
+      glitchOsc.frequency.setValueAtTime(440, this.ctx.currentTime + 0.04);
+      glitchOsc.frequency.setValueAtTime(233.08, this.ctx.currentTime + 0.12);
+      glitchOsc.frequency.setValueAtTime(116.54, this.ctx.currentTime + 0.22);
+
+      glitchGain.gain.setValueAtTime(0.12, this.ctx.currentTime + 0.04);
+      glitchGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+
+      glitchOsc.connect(glitchGain);
+      glitchGain.connect(this.ctx.destination);
+      glitchOsc.start(this.ctx.currentTime + 0.04);
+      glitchOsc.stop(this.ctx.currentTime + 0.35);
+    } catch (_) {}
+  }
 }
 
 const sfx = new SystemAudio();
@@ -449,8 +489,10 @@ function setupIntroFlow() {
   const l4 = document.getElementById('boot-l4');
 
   const welcomeBox = document.getElementById('welcome-modal-box');
+  const deathBox = document.getElementById('death-modal-box');
   const acceptBtn = document.getElementById('accept-quest-btn');
   const declineBtn = document.getElementById('decline-quest-btn');
+  const resurrectBtn = document.getElementById('resurrect-btn');
   const warningText = document.getElementById('decline-warning-text');
   const formWrapper = document.getElementById('main-survey-container');
   const discordInput = document.getElementById('discordUsername');
@@ -543,27 +585,43 @@ function setupIntroFlow() {
     acceptBtn.addEventListener('click', acceptQuest);
   }
 
-  // Easter Egg if user tries to click Decline
+  // Easter Egg: YOU DIED / Solo Leveling Penalty Zone Screen
   if (declineBtn) {
     declineBtn.addEventListener('click', () => {
-      sfx.playError();
-      if (warningText) warningText.style.display = 'block';
-      declineBtn.disabled = true;
-      declineBtn.innerHTML = `<span>[ PENALTY AVERTED ]</span>`;
-      declineBtn.style.color = '#ff85a1';
+      sfx.playDeath();
+      if (stageOverlay) stageOverlay.classList.add('penalty-active');
 
-      // Auto-accept after brief pause (canonical Solo Leveling compulsion!)
-      setTimeout(() => {
-        acceptQuest();
-      }, 1200);
+      if (welcomeBox) {
+        welcomeBox.classList.add('fading-out');
+        setTimeout(() => {
+          welcomeBox.style.display = 'none';
+          if (deathBox) {
+            deathBox.style.display = 'block';
+            deathBox.classList.add('fading-in');
+          }
+        }, 220);
+      }
     });
   }
 
-  // Key press support on Welcome Modal (Enter / Space accepts)
+  // Resurrect Button -> Awakens Player and brings them straight into the survey
+  if (resurrectBtn) {
+    resurrectBtn.addEventListener('click', () => {
+      if (stageOverlay) stageOverlay.classList.remove('penalty-active');
+      acceptQuest();
+    });
+  }
+
+  // Key press support (Enter / Space accepts or resurrects)
   window.addEventListener('keydown', (e) => {
-    if (isBootFinished && welcomeBox && welcomeBox.style.display !== 'none' && stageOverlay && !stageOverlay.classList.contains('dismissed')) {
+    if (isBootFinished && stageOverlay && !stageOverlay.classList.contains('dismissed')) {
       if (e.key === 'Enter' || e.key === ' ') {
-        acceptQuest();
+        if (deathBox && deathBox.style.display !== 'none') {
+          if (stageOverlay) stageOverlay.classList.remove('penalty-active');
+          acceptQuest();
+        } else if (welcomeBox && welcomeBox.style.display !== 'none') {
+          acceptQuest();
+        }
       }
     }
   });

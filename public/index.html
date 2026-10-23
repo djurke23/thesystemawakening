@@ -107,6 +107,59 @@
       </div>
     </div>
 
+    <!-- Phase 3: Easter Egg - You Died / Penalty Screen -->
+    <div id="death-modal-box" class="stage-box death-modal-box" style="display: none;">
+      <svg class="hud-corner-bracket corner-tl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#ff0055" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#ff3366" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#ff0055"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-tr" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#ff0055" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#ff3366" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#ff0055"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-bl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#ff0055" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#ff3366" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#ff0055"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-br" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#ff0055" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#ff3366" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#ff0055"/>
+      </svg>
+
+      <div class="death-badge">
+        <span class="death-pulse-dot"></span>
+        <span>PENALTY ZONE ACTIVATED</span>
+      </div>
+
+      <h2 class="death-headline">YOU DIED.</h2>
+
+      <div class="death-status-card">
+        <div class="death-hp-row">
+          <span class="hp-label">PLAYER HP</span>
+          <span class="hp-val">0 / 100 [DECEASED]</span>
+        </div>
+        <div class="death-hp-track">
+          <div class="death-hp-depleted"></div>
+        </div>
+        <p class="death-lore">
+          "A hunter who refuses The System cannot survive the Gates.<br>
+          Penalty execution: <strong>IMMEDIATE TERMINATION</strong>."
+        </p>
+      </div>
+
+      <p class="death-subtext">The System grants one resurrection blessing to the worthy.</p>
+
+      <div class="welcome-actions">
+        <button type="button" id="resurrect-btn" class="welcome-btn resurrect">
+          <span>[ ⚡ RESURRECT &amp; ACCEPT QUEST ]</span>
+        </button>
+      </div>
+    </div>
+
   </div>
 
   <!-- Floating Background Ambient Mana Particles Canvas -->

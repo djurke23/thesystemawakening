@@ -398,6 +398,145 @@ body::before {
   background: rgba(255, 51, 85, 0.1);
 }
 
+/* Solo Leveling Easter Egg: You Died / Penalty Screen */
+.system-stage-overlay.penalty-active {
+  background: rgba(22, 2, 8, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background 0.4s ease;
+}
+
+.stage-box.death-modal-box {
+  background: rgba(20, 2, 7, 0.98);
+  border: 1.5px solid #ff0055;
+  box-shadow: 0 0 50px rgba(255, 0, 85, 0.45), inset 0 0 25px rgba(255, 0, 85, 0.12);
+  text-align: center;
+  animation: death-glitch 0.35s ease-out;
+}
+
+@keyframes death-glitch {
+  0% { transform: scale(1.05); filter: brightness(2) drop-shadow(0 0 30px #ff0055); }
+  40% { transform: scale(0.97); }
+  100% { transform: scale(1); filter: none; }
+}
+
+.death-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 2px;
+  color: #ff3366;
+  padding: 5px 14px;
+  background: rgba(255, 0, 85, 0.12);
+  border: 1px solid rgba(255, 0, 85, 0.4);
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
+
+.death-pulse-dot {
+  width: 7px;
+  height: 7px;
+  background: #ff0055;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #ff0055;
+  animation: pulse-dot 0.8s infinite ease-in-out;
+}
+
+.death-headline {
+  font-family: var(--font-hud);
+  font-size: 2.2rem;
+  letter-spacing: 6px;
+  color: #ff0055;
+  text-shadow: 0 0 20px rgba(255, 0, 85, 0.75), 0 0 40px rgba(255, 0, 85, 0.45);
+  margin-bottom: 14px;
+  font-weight: 800;
+}
+
+.death-status-card {
+  background: rgba(14, 2, 6, 0.85);
+  border: 1px solid rgba(255, 0, 85, 0.35);
+  border-radius: 3px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.death-hp-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.hp-label {
+  color: #ff85a1;
+  font-weight: 700;
+}
+
+.hp-val {
+  color: #ff0055;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(255, 0, 85, 0.6);
+}
+
+.death-hp-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 0, 85, 0.15);
+  border: 1px solid rgba(255, 0, 85, 0.3);
+  border-radius: 2px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.death-hp-depleted {
+  width: 0%;
+  height: 100%;
+  background: #ff0055;
+}
+
+.death-lore {
+  font-family: var(--font-tech);
+  font-size: 0.88rem;
+  color: #f1b0c0;
+  line-height: 1.45;
+}
+
+.death-lore strong {
+  color: #ff3366;
+}
+
+.death-subtext {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #8c6a74;
+  letter-spacing: 1px;
+  margin-bottom: 18px;
+}
+
+.welcome-btn.resurrect {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(255, 0, 85, 0.25) 0%, rgba(0, 240, 255, 0.25) 100%);
+  border: 1.5px solid #00f0ff;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.45), 0 0 35px rgba(255, 0, 85, 0.35);
+  padding: 14px 20px;
+  font-family: var(--font-hud);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.welcome-btn.resurrect:hover {
+  background: linear-gradient(135deg, rgba(255, 0, 85, 0.45) 0%, rgba(0, 240, 255, 0.45) 100%);
+  box-shadow: 0 0 30px #00f0ff, 0 0 45px #ff0055;
+  transform: translateY(-2px);
+}
+
 /* Particle Sprites Background Canvas */
 .system-particles-canvas {
   position: fixed;
