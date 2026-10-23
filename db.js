@@ -10,12 +10,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE = path.join(__dirname, 'data', 'applications.json');
 
-// Ensure local data file exists as fallback
-if (!fs.existsSync(path.join(__dirname, 'data'))) {
-  fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
-}
-if (!fs.existsSync(DATA_FILE)) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify([], null, 2), 'utf-8');
+// Ensure local data file exists as fallback (only in local environments, not on serverless read-only disk)
+if (!process.env.VERCEL) {
+  try {
+    if (!fs.existsSync(path.join(__dirname, 'data'))) {
+      fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+    }
+    if (!fs.existsSync(DATA_FILE)) {
+      fs.writeFileSync(DATA_FILE, JSON.stringify([], null, 2), 'utf-8');
+    }
+  } catch (_) {}
 }
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -170,8 +174,11 @@ export async function deleteApplication(id) {
 // Local file helpers (fallback)
 function readLocalFile() {
   try {
-    const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-    return JSON.parse(raw);
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+      return JSON.parse(raw);
+    }
+    return [];
   } catch (err) {
     console.error('Error reading local data file:', err);
     return [];
@@ -179,6 +186,7 @@ function readLocalFile() {
 }
 
 function saveLocalFile(applicant) {
+  if (process.env.VERCEL) return false;
   try {
     const apps = readLocalFile();
     apps.unshift(applicant);
