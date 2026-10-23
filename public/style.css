@@ -1233,6 +1233,30 @@ body::before {
   color: #ffffff;
 }
 
+.hud-social-pill.coming-soon {
+  cursor: default;
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.hud-social-pill.coming-soon:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(88, 101, 242, 0.4);
+}
+
+.badge-soon {
+  font-size: 0.62rem;
+  letter-spacing: 1px;
+  background: rgba(88, 101, 242, 0.25);
+  border: 1px solid rgba(88, 101, 242, 0.5);
+  color: #a5b4fc;
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
 .hud-social-pill.youtube:hover {
   border-color: #ff0033;
   box-shadow: 0 0 18px rgba(255, 0, 51, 0.55);
@@ -1277,6 +1301,20 @@ body::before {
   background: linear-gradient(135deg, rgba(88, 101, 242, 0.45) 0%, rgba(0, 210, 255, 0.45) 100%);
   box-shadow: 0 0 30px rgba(88, 101, 242, 0.7);
   transform: translateY(-1px);
+}
+
+.hud-modal-discord-btn.coming-soon {
+  background: rgba(88, 101, 242, 0.12);
+  border: 1px dashed rgba(88, 101, 242, 0.5);
+  color: #a5b4fc;
+  cursor: default;
+  box-shadow: none;
+}
+
+.hud-modal-discord-btn.coming-soon:hover {
+  transform: none;
+  background: rgba(88, 101, 242, 0.12);
+  box-shadow: none;
 }
 
 .powered-by-text {
