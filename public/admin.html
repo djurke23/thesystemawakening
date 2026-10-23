@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE SYSTEM: AWAKENING - Hunter Archive Admin</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      padding: 30px 16px;
+    }
+
+    .admin-container {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    /* Auth Box */
+    .admin-login-box {
+      max-width: 440px;
+      margin: 60px auto;
+      background: var(--bg-card-inner);
+      border: 1px solid var(--cyan-border);
+      border-radius: 8px;
+      padding: 30px 24px;
+      box-shadow: 0 0 35px rgba(0, 229, 255, 0.2);
+      text-align: center;
+      position: relative;
+    }
+
+    /* Admin Header */
+    .admin-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.3);
+    }
+
+    .admin-title-block h1 {
+      font-family: var(--font-hud);
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      color: var(--cyan-primary);
+      text-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .admin-title-block p {
+      font-family: var(--font-tech);
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .admin-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .hud-action-btn {
+      padding: 8px 14px;
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid var(--cyan-border);
+      border-radius: 4px;
+      color: var(--cyan-primary);
+      font-family: var(--font-hud);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .hud-action-btn:hover {
+      background: var(--cyan-primary);
+      color: #02060d;
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+
+    .hud-action-btn.secondary {
+      border-color: rgba(168, 85, 247, 0.5);
+      color: #d8b4fe;
+      background: rgba(168, 85, 247, 0.1);
+    }
+
+    .hud-action-btn.secondary:hover {
+      background: var(--purple-accent);
+      color: #fff;
+      box-shadow: 0 0 15px var(--purple-glow);
+    }
+
+    .hud-action-btn.danger {
+      border-color: rgba(255, 51, 102, 0.5);
+      color: #ff85a1;
+      background: rgba(255, 51, 102, 0.1);
+    }
+
+    .hud-action-btn.danger:hover {
+      background: var(--red-caution);
+      color: #fff;
+      box-shadow: 0 0 15px var(--red-glow);
+    }
+
+    /* Stats Grid */
+    .stats-dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .stat-card {
+      background: var(--bg-card-inner);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 6px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card-title {
+      font-family: var(--font-hud);
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .stat-card-number {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--cyan-bright);
+      text-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .stat-card-meta {
+      font-family: var(--font-tech);
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* Applicants Table Container */
+    .table-section {
+      background: var(--bg-card-inner);
+      border: 1px solid var(--cyan-border);
+      border-radius: 6px;
+      padding: 20px;
+      position: relative;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
+    }
+
+    .table-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      background: var(--bg-input);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 4px;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      width: 260px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--cyan-primary);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .table-scroll-wrap {
+      overflow-x: auto;
+    }
+
+    .hunter-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-tech);
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    .hunter-table th {
+      background: rgba(0, 229, 255, 0.08);
+      color: var(--cyan-primary);
+      font-family: var(--font-hud);
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      padding: 12px 14px;
+      border-bottom: 2px solid rgba(0, 229, 255, 0.3);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .hunter-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .hunter-table tbody tr:hover {
+      background: rgba(0, 229, 255, 0.05);
+    }
+
+    .badge-device {
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid var(--cyan-border);
+      color: var(--cyan-bright);
+      background: rgba(0, 229, 255, 0.1);
+    }
+
+    .badge-path {
+      display: inline-block;
+      margin: 2px 3px 2px 0;
+      padding: 2px 6px;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #d8b4fe;
+      border-radius: 3px;
+      font-size: 0.72rem;
+    }
+
+    .badge-activity {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--gold-bright);
+    }
+
+    .delete-action-btn {
+      background: none;
+      border: none;
+      color: #ff5e7e;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+
+    .delete-action-btn:hover {
+      color: #ff0033;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-dim);
+      font-family: var(--font-hud);
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Navigation -->
+  <aside class="top-action-bar" aria-label="Controls">
+    <a href="index.html" class="hud-pill-btn" style="text-decoration: none;">
+      ⚔ <span>RETURN TO SURVEY</span>
+    </a>
+  </aside>
+
+  <!-- Login Section (shown if not logged in) -->
+  <div id="login-view" class="admin-login-box">
+    <span class="hud-corner corner-tl"></span>
+    <span class="hud-corner corner-tr"></span>
+    <span class="hud-corner corner-bl"></span>
+    <span class="hud-corner corner-br"></span>
+
+    <div style="font-size: 2.5rem; margin-bottom: 8px;">🛡️</div>
+    <h2 style="font-family: var(--font-hud); color: var(--cyan-primary); letter-spacing: 2px; margin-bottom: 8px;">
+      SYSTEM ARCHIVES ACCESS
+    </h2>
+    <p style="font-family: var(--font-tech); color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+      Enter the Founder Admin Secret Key to view registered hunters.
+    </p>
+
+    <form id="admin-login-form">
+      <div class="hud-input-wrap" style="margin-bottom: 16px;">
+        <input 
+          type="password" 
+          id="admin-secret-input" 
+          class="hud-input" 
+          placeholder="Default: hunter2026" 
+          required
+        >
+      </div>
+      <button type="submit" class="hud-submit-btn" style="padding: 12px 16px;">
+        <span>AUTHENTICATE &rarr;</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Admin Dashboard View (shown after auth) -->
+  <main id="dashboard-view" class="admin-container" style="display: none;">
+    
+    <!-- Top Header -->
+    <header class="admin-header">
+      <div class="admin-title-block">
+        <h1>THE SYSTEM: AWAKENING // ARCHIVES</h1>
+        <p>Founder Hunter Closed Beta Application Central</p>
+      </div>
+      <div class="admin-btn-group">
+        <button type="button" id="copy-discord-btn" class="hud-action-btn secondary">
+          📋 <span>COPY DISCORD USERNAMES</span>
+        </button>
+        <button type="button" id="export-csv-btn" class="hud-action-btn">
+          📥 <span>EXPORT CSV</span>
+        </button>
+        <button type="button" id="logout-btn" class="hud-action-btn danger">
+          🔒 <span>LOCK</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats Dashboard -->
+    <section class="stats-dashboard-grid" aria-label="Key Metrics">
+      <div class="stat-card">
+        <div class="stat-card-title">TOTAL REGISTERED HUNTERS</div>
+        <div class="stat-card-number" id="stat-total">0</div>
+        <div class="stat-card-meta">Candidates waiting for closed beta</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-title">DEVICE BREAKDOWN</div>
+        <div class="stat-card-number" style="font-size: 1.3rem; line-height: 1.6;" id="stat-device">
+          Android: 0 | iOS: 0 | Both: 0
+        </div>
+        <div class="stat-card-meta">Platform distribution for test build distribution</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-title">HARDCORE USERS (5H+)</div>
+        <div class="stat-card-number" id="stat-hardcore" style="color: var(--gold-bright);">0</div>
+        <div class="stat-card-meta">Active testing powerhouses</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-title">BUG REPORT VOLUNTEERS</div>
+        <div class="stat-card-number" id="stat-bug-helpers" style="color: var(--neon-green);">0</div>
+        <div class="stat-card-meta">Pledged to submit feedback</div>
+      </div>
+    </section>
+
+    <!-- Table Section -->
+    <section class="table-section">
+      <span class="hud-corner corner-tl"></span>
+      <span class="hud-corner corner-tr"></span>
+      <span class="hud-corner corner-bl"></span>
+      <span class="hud-corner corner-br"></span>
+
+      <div class="table-filter-bar">
+        <div style="font-family: var(--font-hud); font-size: 1.1rem; color: var(--cyan-primary); letter-spacing: 1px;">
+          HUNTER ROSTER (<span id="roster-count">0</span>)
+        </div>
+        <div>
+          <input 
+            type="text" 
+            id="table-search" 
+            class="search-input" 
+            placeholder="Search Discord, ID, or Source..."
+          >
+        </div>
+      </div>
+
+      <div class="table-scroll-wrap">
+        <table class="hunter-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Discord @</th>
+              <th>Device</th>
+              <th>Hunter Path</th>
+              <th>Activity</th>
+              <th>Bugs?</th>
+              <th>Backup Email</th>
+              <th>Source</th>
+              <th>Registered</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="applicant-tbody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+        <div id="table-empty" class="empty-state" style="display: none;">
+          NO HUNTERS MATCH CURRENT QUERY
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

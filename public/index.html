@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE SYSTEM: AWAKENING - Founder Hunter Application</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Unified System Stage (Continuous unbroken blur from Boot through Modal) -->
+  <div id="system-stage-overlay" class="system-stage-overlay">
+    
+    <!-- Phase 1: Boot Terminal Box -->
+    <div id="boot-terminal-box" class="stage-box boot-terminal-box">
+      <svg class="hud-corner-bracket corner-tl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-tr" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-bl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-br" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+
+      <div class="boot-header">
+        <span class="boot-tag">[SYSTEM BOOT PROTOCOL v1.0]</span>
+        <span class="boot-skip">TAP TO SKIP &rarr;</span>
+      </div>
+
+      <div class="boot-log-feed">
+        <div class="boot-line active" id="boot-l1">&gt; CONNECTING TO THE SYSTEM ARCHIVES... <span class="cyan-ok">[OK]</span></div>
+        <div class="boot-line" id="boot-l2">&gt; SCANNING MANA FREQUENCY... <span class="cyan-ok">MATCH FOUND</span></div>
+        <div class="boot-line" id="boot-l3">&gt; RECRUITMENT GATEWAY: <span class="cyan-ok">ONLINE</span></div>
+        <div class="boot-line" id="boot-l4">&gt; INITIALIZING FOUNDER HUNTER PROTOCOL...</div>
+      </div>
+
+      <div class="boot-bar-track">
+        <div class="boot-bar-fill" id="boot-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- Phase 2: Welcome Player Modal Box (In the exact same blurred container!) -->
+    <div id="welcome-modal-box" class="stage-box welcome-modal-box" style="display: none;">
+      <svg class="hud-corner-bracket corner-tl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-tr" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-bl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-br" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+
+      <div class="welcome-badge">
+        <span class="welcome-pulse-dot"></span>
+        <span id="welcome-modal-title">SYSTEM NOTIFICATION</span>
+      </div>
+
+      <h2 class="welcome-headline">WELCOME, PLAYER.</h2>
+
+      <div class="welcome-quest-card">
+        <div class="quest-tag-row">
+          <span class="q-type">SPECIAL QUEST</span>
+          <span class="q-difficulty">DIFFICULTY: E-RANK</span>
+        </div>
+        <div class="quest-title">FOUNDER HUNTER APPLICATION</div>
+        <p class="quest-desc">
+          You have met all the requirements to become a Player in <strong>THE SYSTEM: AWAKENING</strong>.<br>
+          Complete the selection quest to secure your closed beta access key.
+        </p>
+      </div>
+
+      <div id="decline-warning-text" class="decline-warning" style="display: none;">
+        ⚠ WARNING: Refusing The System is not permitted! You will be penalized.
+      </div>
+
+      <div class="welcome-actions">
+        <button type="button" id="accept-quest-btn" class="welcome-btn accept">
+          <span>[ ⚔ ACCEPT QUEST ]</span>
+        </button>
+        <button type="button" id="decline-quest-btn" class="welcome-btn decline">
+          <span>[ DECLINE ]</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Floating Background Ambient Mana Particles Canvas -->
+  <canvas id="system-particles" class="system-particles-canvas" aria-hidden="true"></canvas>
+
+  <!-- Floating Audio & Controls -->
+  <aside class="top-action-bar" aria-label="Controls">
+    <button type="button" id="sound-toggle-btn" class="hud-pill-btn" aria-label="Toggle Sound Effects">
+      🔊 <span>SFX: ON</span>
+    </button>
+  </aside>
+
+  <!-- Main System HUD Modal Window (Form revealed only after exiting the welcome modal) -->
+  <div id="main-survey-container" class="system-modal-wrapper" style="display: none;">
+    <main class="system-hud-panel">
+      <!-- Solo Leveling Nested L-Bracket Corners with Inner Dot (media_1792711904568_4d4c327a.png) -->
+      <svg class="hud-corner-bracket corner-tl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-tr" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-bl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-br" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+
+      <!-- Modal Header -->
+      <header class="hud-header">
+        <div class="hud-title-row">
+          <h1 class="hud-title-text">
+            <span class="white-title">THE SYSTEM: AWAKENING - </span>
+            <span class="cyan-title">FOUNDER HUNTER</span><br>
+            <span class="cyan-title">APPLICATION</span>
+          </h1>
+        </div>
+
+        <div class="hud-subline">
+          <span class="arrow-icon">▶</span>
+          <span>HUNTER REGISTRATION PROTOCOL</span>
+        </div>
+
+        <div class="hud-divider-line"></div>
+      </header>
+
+      <!-- The Questionnaire Form -->
+      <form id="application-form" class="hud-form" novalidate>
+        <!-- Anti-Bot Defense Honeypot (Invisible to humans, triggers automatic neutralization if filled by scrapers) -->
+        <input type="text" name="system_trap_field" style="display:none !important; position:absolute; left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+        <!-- [01] DISCORD USERNAME * -->
+        <div class="field-block">
+          <label for="discordUsername" class="field-label">
+            <span class="field-num">[01]</span>
+            <span class="field-title">DISCORD USERNAME</span>
+            <span class="star-req">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="discordUsername" 
+            name="discordUsername" 
+            class="hud-text-input" 
+            placeholder="@ axon" 
+            required 
+            autocomplete="off" 
+            autocorrect="off" 
+            autocapitalize="off" 
+            spellcheck="false"
+          >
+        </div>
+
+        <!-- [02] DEVICE * -->
+        <fieldset class="field-block" style="border:none; padding:0;">
+          <legend class="field-label" style="float:left; width:100%; margin-bottom:8px;">
+            <span class="field-num">[02]</span>
+            <span class="field-title">DEVICE</span>
+            <span class="star-req">*</span>
+          </legend>
+          <div class="device-options-grid">
+            <label class="device-card-btn">
+              <input type="radio" name="device" value="Android" required>
+              <span class="key-tag">A</span>
+              <span class="btn-text">Android</span>
+            </label>
+
+            <label class="device-card-btn">
+              <input type="radio" name="device" value="iOS" required>
+              <span class="key-tag">B</span>
+              <span class="btn-text">iOS</span>
+            </label>
+
+            <label class="device-card-btn">
+              <input type="radio" name="device" value="Both" required>
+              <span class="key-tag">C</span>
+              <span class="btn-text">Both</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- [03] YOUR HUNTER PATH? * MULTI SELECT -->
+        <fieldset class="field-block" style="border:none; padding:0;">
+          <legend class="field-label" style="float:left; width:100%; margin-bottom:8px;">
+            <span class="field-num">[03]</span>
+            <span class="field-title">YOUR HUNTER PATH?</span>
+            <span class="star-req">*</span>
+            <span class="field-sublabel">MULTI SELECT</span>
+          </legend>
+          <div class="pills-flex-wrap">
+            <label class="pill-option-btn">
+              <input type="checkbox" name="hunterPath" value="Gym">
+              <span class="pill-text">GYM</span>
+            </label>
+
+            <label class="pill-option-btn">
+              <input type="checkbox" name="hunterPath" value="Study">
+              <span class="pill-text">STUDY</span>
+            </label>
+
+            <label class="pill-option-btn">
+              <input type="checkbox" name="hunterPath" value="Work">
+              <span class="pill-text">WORK</span>
+            </label>
+
+            <label class="pill-option-btn">
+              <input type="checkbox" name="hunterPath" value="Discipline">
+              <span class="pill-text">DISCIPLINE</span>
+            </label>
+
+            <label class="pill-option-btn">
+              <input type="checkbox" name="hunterPath" value="All">
+              <span class="pill-text">ALL</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- [04] HOW ACTIVE WILL YOU BE? * -->
+        <fieldset class="field-block" style="border:none; padding:0;">
+          <legend class="field-label" style="float:left; width:100%; margin-bottom:8px;">
+            <span class="field-num">[04]</span>
+            <span class="field-title">HOW ACTIVE WILL YOU BE?</span>
+            <span class="star-req">*</span>
+          </legend>
+          <div class="activity-cards-grid">
+            <label class="activity-card-box">
+              <input type="radio" name="activity" value="1-2h daily" required>
+              <span class="act-primary">1-2H DAILY</span>
+              <span class="act-sub">CASUAL</span>
+            </label>
+
+            <label class="activity-card-box">
+              <input type="radio" name="activity" value="3-4h daily" required>
+              <span class="act-primary">3-4H DAILY</span>
+              <span class="act-sub">DEDICATED</span>
+            </label>
+
+            <label class="activity-card-box">
+              <input type="radio" name="activity" value="Hardcore 5h+" required>
+              <span class="act-primary">HARDCORE 5H+</span>
+              <span class="act-sub">SHADOW MONARCH</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- [05] WILL YOU REPORT BUGS? * -->
+        <fieldset class="field-block" style="border:none; padding:0;">
+          <legend class="field-label" style="float:left; width:100%; margin-bottom:8px;">
+            <span class="field-num">[05]</span>
+            <span class="field-title">WILL YOU REPORT BUGS?</span>
+            <span class="star-req">*</span>
+          </legend>
+          <label class="bug-report-bar">
+            <input type="checkbox" name="reportBugs" value="Yes, I will help" checked>
+            <div class="bug-left-side">
+              <span class="custom-box-sq">✓</span>
+              <span class="bug-text">Yes, I will help</span>
+            </div>
+            <span class="req-badge-right">[REQUIRED]</span>
+          </label>
+        </fieldset>
+
+        <!-- [06] EMAIL OPTIONAL - BACKUP LINK -->
+        <div class="field-block">
+          <label for="email" class="field-label">
+            <span class="field-num">[06]</span>
+            <span class="field-title">EMAIL</span>
+            <span class="field-sublabel">OPTIONAL - BACKUP LINK</span>
+          </label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="hud-text-input" 
+            placeholder="optional - backup link" 
+            autocomplete="email" 
+            autocorrect="off" 
+            autocapitalize="off" 
+            spellcheck="false"
+          >
+        </div>
+
+        <!-- [07] HOW DID YOU FIND US? * MULTI SELECT -->
+        <fieldset class="field-block" style="border:none; padding:0;">
+          <legend class="field-label" style="float:left; width:100%; margin-bottom:8px;">
+            <span class="field-num">[07]</span>
+            <span class="field-title">HOW DID YOU FIND US?</span>
+            <span class="star-req">*</span>
+            <span class="field-sublabel">MULTI SELECT</span>
+          </legend>
+          <div class="pills-flex-wrap">
+            <label class="pill-option-btn">
+              <input type="checkbox" name="source" value="Youtube">
+              <span class="pill-text">YOUTUBE</span>
+            </label>
+
+            <label class="pill-option-btn">
+              <input type="checkbox" name="source" value="Tiktok">
+              <span class="pill-text">TIKTOK</span>
+            </label>
+
+            <label class="pill-option-btn">
+              <input type="checkbox" name="source" value="Reddit">
+              <span class="pill-text">REDDIT</span>
+            </label>
+
+            <label class="pill-option-btn">
+              <input type="checkbox" name="source" value="Instagram">
+              <span class="pill-text">INSTAGRAM</span>
+            </label>
+
+            <label class="pill-option-btn">
+              <input type="checkbox" name="source" value="Other">
+              <span class="pill-text">OTHER</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Inline Error Banner -->
+        <div id="form-error-msg" class="system-error-banner" style="display: none;" role="alert"></div>
+
+        <!-- Submit Button -->
+        <div class="submit-row">
+          <button type="submit" id="submit-btn" class="hud-submit-btn">
+            <span>SUBMIT &rarr;</span>
+          </button>
+        </div>
+
+        <!-- Bottom Transmission Text -->
+        <div class="secure-transmission-text">
+          SECURE TRANSMISSION VIA THE SYSTEM
+        </div>
+
+      </form>
+    </main>
+
+    <!-- Bottom Page Footer -->
+    <footer class="system-page-footer">
+      <div class="powered-by-text">POWERED BY THE SYSTEM</div>
+      <div class="footer-credits-text">
+        DEVELOPED BY AXON 2026 &bull; THE SYSTEM: AWAKENING
+      </div>
+    </footer>
+  </div>
+
+  <!-- Solo Leveling Awakening Notification Modal Popup -->
+  <div class="system-modal-backdrop" id="system-modal" role="dialog" aria-modal="true">
+    <div class="system-modal-box">
+      <svg class="hud-corner-bracket corner-tl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-tr" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-bl" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+      <svg class="hud-corner-bracket corner-br" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M0 22V0H22" stroke="#00f0ff" stroke-width="3" stroke-linecap="square"/>
+        <path d="M6 16V6H16" stroke="#00d2ff" stroke-width="2" stroke-linecap="square"/>
+        <rect x="9" y="9" width="3" height="3" fill="#00f0ff"/>
+      </svg>
+
+      <div class="modal-sys-title" id="modal-title">
+        <span>⚡ [SYSTEM NOTIFICATION]</span>
+      </div>
+
+      <div id="modal-content">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <button type="button" class="modal-close-btn" id="modal-close-btn">
+        [ CONFIRM / CLOSE ]
+      </button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
