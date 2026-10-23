@@ -1151,6 +1151,134 @@ body::before {
   margin-top: 28px;
 }
 
+/* Official Channels / Social Links Bar */
+.hud-social-container {
+  background: rgba(4, 16, 30, 0.75);
+  border: 1px solid var(--cyan-border-dim);
+  border-radius: 4px;
+  padding: 16px 14px 14px 14px;
+  margin-bottom: 22px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.08);
+}
+
+.hud-social-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  color: var(--cyan-bright);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.social-pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--cyan-bright);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--cyan-bright);
+  animation: pulse-dot 1.5s infinite ease-in-out;
+}
+
+.hud-social-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.hud-social-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 8px;
+  background: rgba(6, 20, 36, 0.85);
+  border: 1px solid var(--cyan-border-dim);
+  border-radius: 3px;
+  color: #c4e4ff;
+  text-decoration: none;
+  font-family: var(--font-hud);
+  font-size: 0.78rem;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  transition: all 0.22s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hud-social-pill svg {
+  flex-shrink: 0;
+  transition: transform 0.22s ease;
+}
+
+.hud-social-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--cyan-bright);
+  color: #ffffff;
+  box-shadow: 0 0 15px var(--cyan-glow);
+}
+
+.hud-social-pill:hover svg {
+  transform: scale(1.15);
+}
+
+/* Platform-specific accent touches */
+.hud-social-pill.discord:hover {
+  border-color: #5865F2;
+  box-shadow: 0 0 18px rgba(88, 101, 242, 0.55);
+  color: #ffffff;
+}
+
+.hud-social-pill.youtube:hover {
+  border-color: #ff0033;
+  box-shadow: 0 0 18px rgba(255, 0, 51, 0.55);
+  color: #ffffff;
+}
+
+.hud-social-pill.tiktok:hover {
+  border-color: #00f2fe;
+  box-shadow: 0 0 18px rgba(0, 242, 254, 0.55);
+  color: #ffffff;
+}
+
+.hud-social-pill.instagram:hover {
+  border-color: #e1306c;
+  box-shadow: 0 0 18px rgba(225, 48, 108, 0.55);
+  color: #ffffff;
+}
+
+/* Modal Discord Guild Callout */
+.hud-modal-discord-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(88, 101, 242, 0.25) 0%, rgba(0, 210, 255, 0.25) 100%);
+  border: 1.5px solid #5865F2;
+  border-radius: 3px;
+  color: #ffffff;
+  text-decoration: none;
+  font-family: var(--font-hud);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  box-shadow: 0 0 20px rgba(88, 101, 242, 0.4);
+  transition: all 0.22s ease;
+  margin-top: 12px;
+}
+
+.hud-modal-discord-btn:hover {
+  background: linear-gradient(135deg, rgba(88, 101, 242, 0.45) 0%, rgba(0, 210, 255, 0.45) 100%);
+  box-shadow: 0 0 30px rgba(88, 101, 242, 0.7);
+  transform: translateY(-1px);
+}
+
 .powered-by-text {
   font-family: var(--font-hud);
   font-size: 0.85rem;
@@ -1354,5 +1482,10 @@ body::before {
 
   .pill-option-btn {
     padding: 8px 12px;
+  }
+
+  .hud-social-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 }
