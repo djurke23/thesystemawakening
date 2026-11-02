@@ -22,5 +22,9 @@ create index if not exists idx_applications_created_at on applications (created_
 -- Row Level Security
 alter table applications enable row level security;
 
--- Allow insert & select from our backend API
-create policy "Allow service access" on applications for all using (true) with check (true);
+-- No public policies: only the backend talks to this table, using the SECRET key
+-- (sb_secret_... / service_role), which bypasses RLS. The publishable/anon key gets nothing.
+--
+-- MIGRATION for existing projects (run AFTER setting SUPABASE_KEY on Vercel to the secret key
+-- and redeploying, otherwise the site stops saving applications):
+--   drop policy if exists "Allow service access" on applications;

@@ -30,7 +30,7 @@ Web anketa / upitnik za registraciju prvih "Founder Hunter" testera za mobilnu a
    - Pretraga kandidata po Discord imenu, ID-u ili platformi.
    - **One-Click "Copy Discord Usernames"**: Kopira sve Discord tagove odjednom za dodelu role na Discord serveru!
    - **One-Click "Export CSV"**: Preuzimanje Excel / Google Sheets kompatibilne tabele sa UTF-8 podrškom.
-   - Zaštićeno tajnim administratorskim ključem (default: `hunter2026`).
+   - Zaštićeno tajnim administratorskim ključem (`ADMIN_SECRET`, najmanje 16 karaktera; bez njega admin je isključen).
 
 4. **Discord Webhook Integracija (Opciono)**:
    - Svaka prijava može automatski slati Solo Leveling embed karticu direktno u tvoj Discord kanal za prijave testera!
@@ -56,7 +56,7 @@ npm run dev
 Aplikacija se pokreće na:
 - **Anketa za kandidate**: [http://localhost:3030](http://localhost:3030)
 - **Admin Kontrolna Tabla**: [http://localhost:3030/admin.html](http://localhost:3030/admin.html)
-- **Default Admin Ključ**: `hunter2026`
+- **Admin Ključ**: vrednost `ADMIN_SECRET` iz `.env` (nema podrazumevane vrednosti)
 
 ---
 
@@ -65,7 +65,7 @@ Aplikacija se pokreće na:
 U fajlu `.env` možeš promeniti:
 ```env
 PORT=3030
-ADMIN_SECRET=hunter2026
+ADMIN_SECRET=neki-dugacak-nasumican-kljuc-min-16
 
 # Ako želiš da ti prijave stižu direktno u Discord kanal, ovde unesi Webhook URL:
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...

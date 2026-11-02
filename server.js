@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
@@ -8,6 +8,7 @@ import {
   saveApplication,
   getApplicationsCount,
   deleteApplication,
+  findExistingApplicant,
   isUsingSupabase
 } from './db.js';
 
@@ -18,31 +19,95 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3030;
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'hunter2026';
+// No fallback: without ADMIN_SECRET (min 16 chars) the admin API stays locked
+const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
+const ADMIN_ENABLED = ADMIN_SECRET.length >= 16;
+if (!ADMIN_ENABLED) {
+  console.warn('⚠ [SYSTEM] ADMIN_SECRET is missing or shorter than 16 characters. Admin API is disabled.');
+}
+
+// Allowed answers (must match the options in public/index.html)
+const DISCORD_USERNAME_RE = /^[a-z0-9._]{2,32}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const ALLOWED_DEVICES = ['Android', 'iOS', 'Both'];
+const ALLOWED_PATHS = ['Gym', 'Study', 'Work', 'Discipline', 'All'];
+const ALLOWED_ACTIVITY = ['1-2h daily', '3-4h daily', 'Hardcore 5h+'];
+const ALLOWED_SOURCES = ['Youtube', 'Tiktok', 'Reddit', 'Instagram', 'Other'];
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Simple in-memory anti-spam rate limiter for submissions (5 attempts per 10 mins per IP)
-const ipSubmissionTimestamps = new Map();
+// Simple in-memory rate limiter per IP (best effort on serverless: resets on cold start)
+function createRateLimiter({ windowMs, maxAttempts, message }) {
+  const hits = new Map();
+  return (req, res, next) => {
+    const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    const ip = forwarded || req.socket.remoteAddress || 'unknown';
+    const now = Date.now();
 
-function applyRateLimiter(req, res, next) {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
-  const now = Date.now();
-  const windowMs = 10 * 60 * 1000; // 10 minutes
-  const maxAttempts = 5;
+    const timestamps = (hits.get(ip) || []).filter(t => now - t < windowMs);
+    if (timestamps.length >= maxAttempts) {
+      return res.status(429).json({ error: message });
+    }
+    timestamps.push(now);
+    hits.set(ip, timestamps);
 
-  const timestamps = (ipSubmissionTimestamps.get(ip) || []).filter(t => now - t < windowMs);
-  if (timestamps.length >= maxAttempts) {
-    return res.status(429).json({
-      error: '⚠ [SYSTEM WARNING] Mana overload detected. Please wait 10 minutes before submitting again.'
-    });
+    if (hits.size > 5000) {
+      for (const [key, list] of hits) {
+        if (list.every(t => now - t >= windowMs)) hits.delete(key);
+      }
+    }
+    next();
+  };
+}
+
+const applyRateLimiter = createRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  maxAttempts: 5,
+  message: '⚠ [SYSTEM WARNING] Mana overload detected. Please wait 10 minutes before submitting again.'
+});
+
+const duplicateCheckRateLimiter = createRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  maxAttempts: 30,
+  message: 'Too many checks. Please wait a few minutes.'
+});
+
+const adminLoginRateLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 10,
+  message: 'Too many login attempts. Please wait 15 minutes.'
+});
+
+function normalizeDiscord(value) {
+  return String(value || '').trim().replace(/^@+/, '').toLowerCase();
+}
+
+function isValidAdminSecret(candidate) {
+  if (!ADMIN_ENABLED || typeof candidate !== 'string') return false;
+  const a = crypto.createHash('sha256').update(candidate).digest();
+  const b = crypto.createHash('sha256').update(ADMIN_SECRET).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+function generateHunterId() {
+  // 8 chars from an unambiguous alphabet (~10^12 combinations), no collisions in practice
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.randomBytes(8);
+  let code = '';
+  for (const byte of bytes) code += alphabet[byte % alphabet.length];
+  return `HNTR-${code}`;
+}
+
+function duplicateMessage(field) {
+  if (field === 'email') {
+    return 'You have already applied! This backup email is already registered in the System archives.';
   }
-  timestamps.push(now);
-  ipSubmissionTimestamps.set(ip, timestamps);
-  next();
+  if (field === 'both') {
+    return 'You have already applied! This Discord username and backup email are already registered in the System archives.';
+  }
+  return 'You have already applied! This Discord username is already registered in the System archives.';
 }
 
 // Helper to send Discord Webhook if configured
@@ -142,6 +207,36 @@ app.get('/api/spots', async (req, res) => {
   return res.json({ remaining, total: count, maxSpots });
 });
 
+// 0.5. Real-time duplicate check for Discord or Backup Email
+// Never returns stored data, only whether the value is taken
+app.get('/api/check-duplicate', duplicateCheckRateLimiter, async (req, res) => {
+  try {
+    const discord = normalizeDiscord(req.query.discord);
+    const email = String(req.query.email || '').trim().toLowerCase();
+    if (!DISCORD_USERNAME_RE.test(discord) && !EMAIL_RE.test(email)) {
+      return res.json({ exists: false });
+    }
+
+    const duplicate = await findExistingApplicant({
+      discordUsername: DISCORD_USERNAME_RE.test(discord) ? discord : '',
+      email: EMAIL_RE.test(email) ? email : ''
+    });
+
+    if (duplicate) {
+      return res.json({
+        exists: true,
+        field: duplicate.field,
+        message: duplicateMessage(duplicate.field)
+      });
+    }
+
+    return res.json({ exists: false });
+  } catch (err) {
+    console.error('Error in /api/check-duplicate:', err);
+    return res.json({ exists: false });
+  }
+});
+
 // 1. Submit Application
 app.post('/api/apply', applyRateLimiter, async (req, res) => {
   try {
@@ -162,61 +257,87 @@ app.post('/api/apply', applyRateLimiter, async (req, res) => {
       return res.status(201).json({
         success: true,
         message: 'APPLICATION REGISTERED IN SYSTEM ARCHIVES',
-        hunter: { id: 'HNTR-BOT-DEFENSE', discordUsername: '@verified' }
+        hunter: { id: 'HNTR-VERIFIED', discordUsername: '@verified', device: '-', hunterPath: [], activity: '-' }
       });
     }
 
-    // Validation
-    if (!discordUsername || typeof discordUsername !== 'string' || !discordUsername.trim()) {
+    // Validation (whitelists only, so nothing unexpected reaches the DB or the admin panel)
+    const normDiscord = normalizeDiscord(discordUsername);
+    if (!normDiscord) {
       return res.status(400).json({ error: 'Discord username is required.' });
     }
+    if (!DISCORD_USERNAME_RE.test(normDiscord)) {
+      return res.status(400).json({ error: 'Invalid Discord username (2-32 characters: letters, numbers, . and _).' });
+    }
 
-    if (!device || typeof device !== 'string') {
+    if (!ALLOWED_DEVICES.includes(device)) {
       return res.status(400).json({ error: 'Device selection is required.' });
     }
 
-    if (!Array.isArray(hunterPath) || hunterPath.length === 0) {
+    const cleanPaths = Array.isArray(hunterPath)
+      ? [...new Set(hunterPath.filter(p => ALLOWED_PATHS.includes(p)))]
+      : [];
+    if (cleanPaths.length === 0) {
       return res.status(400).json({ error: 'At least one Hunter Path must be selected.' });
     }
 
-    if (!activity || typeof activity !== 'string') {
+    if (!ALLOWED_ACTIVITY.includes(activity)) {
       return res.status(400).json({ error: 'Activity level is required.' });
     }
 
-    // Source can be array or string
-    let cleanSource = '';
-    if (Array.isArray(source)) {
-      if (source.length === 0) {
-        return res.status(400).json({ error: 'Please select how you found us.' });
-      }
-      cleanSource = source.map(s => String(s).trim()).join(', ');
-    } else if (typeof source === 'string' && source.trim()) {
-      cleanSource = source.trim();
-    } else {
+    if (reportBugs !== true) {
+      return res.status(400).json({ error: 'Bug reporting confirmation is required.' });
+    }
+
+    const sourceList = Array.isArray(source) ? source : [source];
+    const cleanSources = [...new Set(sourceList.filter(s => ALLOWED_SOURCES.includes(s)))];
+    if (cleanSources.length === 0) {
       return res.status(400).json({ error: 'Please select how you found us.' });
     }
+    const cleanSource = cleanSources.join(', ');
 
-    // Format discord username
-    let cleanDiscord = discordUsername.trim();
-    if (!cleanDiscord.startsWith('@')) {
-      cleanDiscord = '@' + cleanDiscord;
+    const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    if (cleanEmail && (cleanEmail.length > 254 || !EMAIL_RE.test(cleanEmail))) {
+      return res.status(400).json({ error: 'Invalid email address.' });
     }
 
-    const randomCode = Math.floor(1000 + Math.random() * 9000);
-    const applicant = {
-      id: `HNTR-${randomCode}`,
+    const cleanDiscord = '@' + normDiscord;
+
+    // Check for duplicate Discord username or backup email
+    const duplicate = await findExistingApplicant({
       discordUsername: cleanDiscord,
-      device: device.trim(),
-      hunterPath: hunterPath.map(p => String(p).trim()),
-      activity: activity.trim(),
-      reportBugs: Boolean(reportBugs),
-      email: email ? String(email).trim() : '',
+      email: cleanEmail
+    });
+
+    if (duplicate) {
+      const duplicateMsg = duplicateMessage(duplicate.field);
+      return res.status(409).json({
+        success: false,
+        duplicate: true,
+        field: duplicate.field,
+        error: `⚠ [SYSTEM NOTICE] ALREADY REGISTERED // ${duplicateMsg}`,
+        message: duplicateMsg
+      });
+    }
+
+    const applicant = {
+      id: generateHunterId(),
+      discordUsername: cleanDiscord,
+      device,
+      hunterPath: cleanPaths,
+      activity,
+      reportBugs: true,
+      email: cleanEmail,
       source: cleanSource,
       rank: 'E-Rank Hunter',
       createdAt: new Date().toISOString()
     };
 
-    await saveApplication(applicant);
+    const saved = await saveApplication(applicant);
+    if (!saved) {
+      // Don't tell the user they're registered if nothing was stored
+      return res.status(500).json({ error: 'The System could not save your application. Please try again in a minute.' });
+    }
 
     // Fire Discord notification non-blocking
     sendDiscordNotification(applicant).catch(() => {});
@@ -233,18 +354,17 @@ app.post('/api/apply', applyRateLimiter, async (req, res) => {
 });
 
 // 2. Admin Check / Login
-app.post('/api/admin/verify', (req, res) => {
-  const { secret } = req.body;
-  if (secret === ADMIN_SECRET) {
+app.post('/api/admin/verify', adminLoginRateLimiter, (req, res) => {
+  const { secret } = req.body || {};
+  if (isValidAdminSecret(secret)) {
     return res.json({ success: true, authorized: true });
   }
   return res.status(401).json({ error: 'Access denied: Invalid Hunter Admin key.' });
 });
 
-// Middleware for Admin Authorization
+// Middleware for Admin Authorization (header only, never in the URL)
 function checkAdminAuth(req, res, next) {
-  const authHeader = req.headers['x-admin-key'] || req.query.secret;
-  if (authHeader && authHeader === ADMIN_SECRET) {
+  if (isValidAdminSecret(req.headers['x-admin-key'])) {
     return next();
   }
   return res.status(401).json({ error: 'Unauthorized: Invalid Admin Secret' });
@@ -267,11 +387,14 @@ app.get('/api/applications', checkAdminAuth, async (req, res) => {
 app.get('/api/export-csv', checkAdminAuth, async (req, res) => {
   const apps = await getAllApplications();
 
-  // Helper to escape CSV cell
+  // Helper to escape CSV cell (and neutralize Excel formula injection)
   const escapeCsv = (val) => {
     if (val === null || val === undefined) return '""';
-    const str = String(val).replace(/"/g, '""');
-    return `"${str}"`;
+    let str = String(val);
+    if (/^[=+\-\t\r]/.test(str) || (str.startsWith('@') && !/^@[a-z0-9._]+$/i.test(str))) {
+      str = `'${str}`;
+    }
+    return `"${str.replace(/"/g, '""')}"`;
   };
 
   const headers = [
@@ -328,7 +451,7 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
     console.log(`⚔️  THE SYSTEM: AWAKENING - Survey Server`);
     console.log(`🌐  Survey Form: http://localhost:${PORT}`);
     console.log(`🛡️  Admin Dashboard: http://localhost:${PORT}/admin.html`);
-    console.log(`🔑  Admin Key: ${ADMIN_SECRET}`);
+    console.log(`🔑  Admin API: ${ADMIN_ENABLED ? 'enabled' : 'DISABLED (set ADMIN_SECRET, 16+ chars)'}`);
     console.log(`💾  Storage: ${isUsingSupabase() ? 'Supabase Database' : 'Local JSON File'}`);
     console.log(`===============================================`);
   });

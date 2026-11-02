@@ -1527,3 +1527,19 @@ body::before {
     gap: 8px;
   }
 }
+
+/* Privacy consent note under the submit button */
+.privacy-consent-text {
+  text-align: center;
+  font-family: var(--font-tech);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+  margin-top: 12px;
+}
+
+.privacy-consent-text a {
+  color: var(--cyan-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

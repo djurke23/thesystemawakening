@@ -3,7 +3,19 @@
    ========================================================================== */
 
 let applicantsData = [];
-let currentSecret = localStorage.getItem('system_admin_key') || '';
+// sessionStorage: key is forgotten when the tab closes
+localStorage.removeItem('system_admin_key');
+let currentSecret = sessionStorage.getItem('system_admin_key') || '';
+
+// Escape applicant-supplied text before it goes into innerHTML
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 const loginView = document.getElementById('login-view');
 const dashboardView = document.getElementById('dashboard-view');
@@ -31,7 +43,7 @@ loginForm.addEventListener('submit', async (e) => {
 
     if (res.ok) {
       currentSecret = secret;
-      localStorage.setItem('system_admin_key', secret);
+      sessionStorage.setItem('system_admin_key', secret);
       showDashboard();
     } else {
       alert('Access Denied: Invalid Secret Key.');
@@ -44,15 +56,34 @@ loginForm.addEventListener('submit', async (e) => {
 // Logout
 logoutBtn.addEventListener('click', () => {
   currentSecret = '';
-  localStorage.removeItem('system_admin_key');
+  sessionStorage.removeItem('system_admin_key');
   dashboardView.style.display = 'none';
   loginView.style.display = 'block';
   secretInput.value = '';
 });
 
-// Export CSV
-exportCsvBtn.addEventListener('click', () => {
-  window.location.href = `/api/export-csv?secret=${encodeURIComponent(currentSecret)}`;
+// Export CSV (key goes in a header, never in the URL)
+exportCsvBtn.addEventListener('click', async () => {
+  try {
+    const res = await fetch('/api/export-csv', {
+      headers: { 'x-admin-key': currentSecret }
+    });
+    if (!res.ok) {
+      alert('Failed to export CSV.');
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'the_system_founder_hunters.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert(`System Error: ${err.message}`);
+  }
 });
 
 // Copy all Discord usernames for bulk role assignment
@@ -84,7 +115,7 @@ async function deleteApplicant(id) {
   if (!confirm(`Are you sure you want to remove hunter ${id}?`)) return;
 
   try {
-    const res = await fetch(`/api/applications/${id}`, {
+    const res = await fetch(`/api/applications/${encodeURIComponent(id)}`, {
       method: 'DELETE',
       headers: { 'x-admin-key': currentSecret }
     });
@@ -105,9 +136,9 @@ function renderTable() {
   const query = searchInput.value.trim().toLowerCase();
   const filtered = applicantsData.filter(a => {
     return (
-      a.discordUsername.toLowerCase().includes(query) ||
-      a.id.toLowerCase().includes(query) ||
-      a.device.toLowerCase().includes(query) ||
+      String(a.discordUsername || '').toLowerCase().includes(query) ||
+      String(a.id || '').toLowerCase().includes(query) ||
+      String(a.device || '').toLowerCase().includes(query) ||
       (a.source && a.source.toLowerCase().includes(query)) ||
       (a.email && a.email.toLowerCase().includes(query))
     );
@@ -123,7 +154,7 @@ function renderTable() {
 
   emptyState.style.display = 'none';
   tbody.innerHTML = filtered.map(a => {
-    const pathsHtml = (a.hunterPath || []).map(p => `<span class="badge-path">${p}</span>`).join('');
+    const pathsHtml = (Array.isArray(a.hunterPath) ? a.hunterPath : []).map(p => `<span class="badge-path">${escapeHtml(p)}</span>`).join('');
     const dateFormatted = new Date(a.createdAt).toLocaleDateString([], {
       month: 'short',
       day: 'numeric',
@@ -133,17 +164,17 @@ function renderTable() {
 
     return `
       <tr>
-        <td style="font-family: var(--font-mono); font-weight: 700; color: var(--cyan-primary);">${a.id}</td>
-        <td style="font-weight: 600; color: #fff;">${a.discordUsername}</td>
-        <td><span class="badge-device">${a.device}</span></td>
+        <td style="font-family: var(--font-mono); font-weight: 700; color: var(--cyan-primary);">${escapeHtml(a.id)}</td>
+        <td style="font-weight: 600; color: #fff;">${escapeHtml(a.discordUsername)}</td>
+        <td><span class="badge-device">${escapeHtml(a.device)}</span></td>
         <td>${pathsHtml}</td>
-        <td><span class="badge-activity">${a.activity}</span></td>
+        <td><span class="badge-activity">${escapeHtml(a.activity)}</span></td>
         <td style="color: ${a.reportBugs ? 'var(--neon-green)' : 'var(--text-dim)'};">${a.reportBugs ? '✓ Yes' : 'No'}</td>
-        <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${a.email || '-'}</td>
-        <td style="font-weight: 600; color: #bdefff;">${a.source || '-'}</td>
-        <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim);">${dateFormatted}</td>
+        <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(a.email || '-')}</td>
+        <td style="font-weight: 600; color: #bdefff;">${escapeHtml(a.source || '-')}</td>
+        <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim);">${escapeHtml(dateFormatted)}</td>
         <td>
-          <button type="button" class="delete-action-btn" title="Delete Candidate" onclick="deleteApplicant('${a.id}')">
+          <button type="button" class="delete-action-btn" title="Delete Candidate" data-delete-id="${escapeHtml(a.id)}">
             🗑
           </button>
         </td>
@@ -210,5 +241,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   dashboardView.style.display = 'none';
 });
 
-// Global reference for onclick delete
-window.deleteApplicant = deleteApplicant;
+// Delete buttons (delegated, no inline onclick)
+tbody.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-delete-id]');
+  if (btn) deleteApplicant(btn.dataset.deleteId);
+});

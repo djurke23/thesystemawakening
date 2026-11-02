@@ -41,6 +41,75 @@ export function isUsingSupabase() {
   return supabase !== null;
 }
 
+// Check if an applicant with the same Discord username or backup email already exists
+export async function findExistingApplicant({ discordUsername, email }) {
+  const normDiscord = (discordUsername || '').trim().replace(/^@+/, '').toLowerCase();
+  const normEmail = (email || '').trim().toLowerCase();
+
+  if (!normDiscord && !normEmail) {
+    return null;
+  }
+
+  const matchRow = (rowDiscordRaw, rowEmailRaw, id) => {
+    const rowDiscord = (rowDiscordRaw || '').trim().replace(/^@+/, '').toLowerCase();
+    const rowEmail = (rowEmailRaw || '').trim().toLowerCase();
+    const discordMatches = Boolean(normDiscord && rowDiscord === normDiscord);
+    const emailMatches = Boolean(normEmail && rowEmail === normEmail);
+    if (!discordMatches && !emailMatches) return null;
+    const field = discordMatches && emailMatches ? 'both' : (discordMatches ? 'discordUsername' : 'email');
+    return { id, field };
+  };
+
+  // Escape LIKE wildcards so user input only ever matches literally
+  const escapeLike = (value) => value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+
+  // 1. Check in Supabase if connected
+  if (supabase) {
+    try {
+      const queries = [];
+      if (normDiscord) {
+        queries.push(supabase.from('applications').select('id, discord_username, email')
+          .ilike('discord_username', `@${escapeLike(normDiscord)}`).limit(5));
+        queries.push(supabase.from('applications').select('id, discord_username, email')
+          .ilike('discord_username', escapeLike(normDiscord)).limit(5));
+      }
+      if (normEmail) {
+        queries.push(supabase.from('applications').select('id, discord_username, email')
+          .ilike('email', escapeLike(normEmail)).limit(5));
+      }
+
+      const results = await Promise.all(queries);
+      const rows = results.flatMap(({ data, error }) => {
+        if (error) console.error('Supabase duplicate check error:', error);
+        return data || [];
+      });
+
+      let best = null;
+      for (const row of rows) {
+        const match = matchRow(row.discord_username, row.email, row.id);
+        if (match && (!best || match.field === 'both')) best = match;
+      }
+      if (best) return best;
+    } catch (err) {
+      console.error('Supabase duplicate check exception:', err);
+    }
+  }
+
+  // 2. Check local file (fallback or standalone local mode)
+  try {
+    let best = null;
+    for (const app of readLocalFile()) {
+      const match = matchRow(app.discordUsername, app.email, app.id);
+      if (match && (!best || match.field === 'both')) best = match;
+    }
+    if (best) return best;
+  } catch (err) {
+    console.error('Local duplicate check error:', err);
+  }
+
+  return null;
+}
+
 // Read all applications
 export async function getAllApplications() {
   if (supabase) {
@@ -101,15 +170,13 @@ export async function saveApplication(applicant) {
 
       if (error) {
         console.error('Supabase insert error:', error);
-        // Fallback to local file so user data is never lost
-        saveLocalFile(applicant);
-        return false;
+        // Fallback to local file (only works locally; on Vercel this returns false)
+        return saveLocalFile(applicant);
       }
       return true;
     } catch (err) {
       console.error('Supabase save exception:', err);
-      saveLocalFile(applicant);
-      return false;
+      return saveLocalFile(applicant);
     }
   }
 

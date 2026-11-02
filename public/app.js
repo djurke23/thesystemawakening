@@ -174,6 +174,20 @@ class SystemAudio {
 
 const sfx = new SystemAudio();
 
+// Same rules as the server (Discord: 2-32 chars, letters/numbers/./_)
+const DISCORD_USERNAME_RE = /^[a-zA-Z0-9._]{2,32}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// Escape server/user-supplied text before it goes into innerHTML
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Handle "ALL" toggle in Hunter Path
 function setupHunterPathLogic() {
   const checkboxes = document.querySelectorAll('input[name="hunterPath"]');
@@ -263,6 +277,36 @@ function setupFormSubmission() {
     form.addEventListener('change', clearFormError);
   }
 
+  // Live duplicate checking on blur
+  const discordInput = document.getElementById('discordUsername');
+  const emailInput = document.getElementById('email');
+
+  async function checkLiveDuplicate(type, inputEl) {
+    const val = inputEl.value.trim();
+    if (!val) return;
+    if (type === 'discord' && val.replace(/^@+/, '').length < 2) return;
+    if (type === 'email' && (!val.includes('@') || val.length < 5)) return;
+
+    try {
+      const param = type === 'discord' ? `discord=${encodeURIComponent(val)}` : `email=${encodeURIComponent(val)}`;
+      const res = await fetch(`/api/check-duplicate?${param}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.exists) {
+        showFormError(inputEl, data.message);
+      }
+    } catch (_) {
+      // Ignore background check network errors
+    }
+  }
+
+  if (discordInput) {
+    discordInput.addEventListener('blur', () => checkLiveDuplicate('discord', discordInput));
+  }
+  if (emailInput) {
+    emailInput.addEventListener('blur', () => checkLiveDuplicate('email', emailInput));
+  }
+
   function closeModal() {
     sfx.playHover();
     if (modalBackdrop) modalBackdrop.classList.remove('open');
@@ -287,11 +331,15 @@ function setupFormSubmission() {
       showFormError(form.discordUsername, 'DISCORD USERNAME IS REQUIRED');
       return;
     }
+    if (!DISCORD_USERNAME_RE.test(discordUsername.replace(/^@+/, ''))) {
+      showFormError(form.discordUsername, 'INVALID DISCORD USERNAME (2-32 CHARS: LETTERS, NUMBERS, . AND _)');
+      return;
+    }
 
     // 2. Device
     const deviceEl = form.querySelector('input[name="device"]:checked');
     if (!deviceEl) {
-      showFormError(document.getElementById('discordUsername'), 'SELECT YOUR TARGET DEVICE PLATFORM');
+      showFormError(document.querySelector('.device-options-grid'), 'SELECT YOUR TARGET DEVICE PLATFORM');
       return;
     }
     const device = deviceEl.value;
@@ -322,6 +370,10 @@ function setupFormSubmission() {
 
     // 6. Email (optional)
     const email = form.email.value.trim();
+    if (email && !EMAIL_RE.test(email)) {
+      showFormError(form.email, 'INVALID EMAIL ADDRESS');
+      return;
+    }
 
     // 7. How did you find us? (multi-select)
     const sourceEls = form.querySelectorAll('input[name="source"]:checked');
@@ -346,14 +398,53 @@ function setupFormSubmission() {
           activity,
           reportBugs,
           email,
-          source
+          source,
+          system_trap_field: form.system_trap_field ? form.system_trap_field.value : ''
         })
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Transmission failed.');
+        if (data && data.duplicate) {
+          sfx.playError();
+
+          let targetEl = form.discordUsername;
+          if (data.field === 'email' && form.email) {
+            targetEl = form.email;
+          }
+
+          showFormError(targetEl, data.message || data.error);
+
+          modalTitle.innerHTML = `<span style="color: #ff5577;">⚠ [SYSTEM NOTIFICATION] ALREADY REGISTERED</span>`;
+          modalContent.innerHTML = `
+            <div style="text-align: center; margin-bottom: 14px;">
+              <div style="font-size: 2.4rem; filter: drop-shadow(0 0 10px #ff3355); margin-bottom: 4px;">⚠</div>
+              <div style="font-family: var(--font-hud); font-size: 1.15rem; color: #ff5577; font-weight: 700; letter-spacing: 1px;">
+                HUNTER ALREADY REGISTERED
+              </div>
+              <div style="font-family: var(--font-tech); font-size: 0.9rem; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
+                ${escapeHtml(data.message || 'You have already submitted your coordinates. A hunter with these details is already registered in the System archives.')}
+              </div>
+            </div>
+
+            <div class="hunter-badge-card" style="border-color: rgba(255, 51, 85, 0.4); background: rgba(255, 51, 85, 0.08);">
+              <div class="hunter-badge-row"><span class="label">STATUS:</span><span class="val" style="color: #ff5577;">DUPLICATE DETECTED</span></div>
+              <div class="hunter-badge-row"><span class="label">DISCORD:</span><span class="val" style="color: var(--cyan-bright);">${escapeHtml(discordUsername)}</span></div>
+              <div class="hunter-badge-row"><span class="label">SYSTEM:</span><span class="val" style="color: var(--gold-accent);">RECORD PREVIOUSLY SEALED</span></div>
+            </div>
+
+            <div style="background: rgba(255, 51, 85, 0.08); border: 1px solid rgba(255, 51, 85, 0.3); padding: 12px; border-radius: 3px; font-family: var(--font-tech); font-size: 0.85rem; color: #ffb8c6; line-height: 1.4; margin-top: 12px; text-align: center;">
+              Your founder application is already securely registered in The System database! There is no need to resubmit. Watch Discord for your closed beta invitation!
+            </div>
+          `;
+
+          modalBackdrop.classList.add('open');
+          return;
+        }
+
+        showFormError(submitBtn, data.error || 'Transmission failed.');
+        return;
       }
 
       // Success! Play awakening fanfare!
@@ -374,11 +465,11 @@ function setupFormSubmission() {
         </div>
 
         <div class="hunter-badge-card">
-          <div class="hunter-badge-row"><span class="label">HUNTER ID:</span><span class="val">${hunter.id}</span></div>
-          <div class="hunter-badge-row"><span class="label">DISCORD:</span><span class="val">${hunter.discordUsername}</span></div>
-          <div class="hunter-badge-row"><span class="label">PLATFORM:</span><span class="val">${hunter.device}</span></div>
-          <div class="hunter-badge-row"><span class="label">PATH:</span><span class="val">${hunter.hunterPath.join(', ')}</span></div>
-          <div class="hunter-badge-row"><span class="label">ACTIVITY:</span><span class="val" style="color:var(--gold-accent)">${hunter.activity}</span></div>
+          <div class="hunter-badge-row"><span class="label">HUNTER ID:</span><span class="val">${escapeHtml(hunter.id)}</span></div>
+          <div class="hunter-badge-row"><span class="label">DISCORD:</span><span class="val">${escapeHtml(hunter.discordUsername)}</span></div>
+          <div class="hunter-badge-row"><span class="label">PLATFORM:</span><span class="val">${escapeHtml(hunter.device)}</span></div>
+          <div class="hunter-badge-row"><span class="label">PATH:</span><span class="val">${escapeHtml((hunter.hunterPath || []).join(', '))}</span></div>
+          <div class="hunter-badge-row"><span class="label">ACTIVITY:</span><span class="val" style="color:var(--gold-accent)">${escapeHtml(hunter.activity)}</span></div>
           <div class="hunter-badge-row"><span class="label">RANK:</span><span class="val" style="color:var(--neon-green)">FOUNDER CANDIDATE</span></div>
         </div>
 
@@ -398,7 +489,7 @@ function setupFormSubmission() {
       form.reset();
 
     } catch (err) {
-      alert(`System Error: ${err.message}`);
+      showFormError(submitBtn, err.message || 'System transmission error occurred.');
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = `<span>SUBMIT &rarr;</span>`;
@@ -639,12 +730,4 @@ document.addEventListener('DOMContentLoaded', () => {
   setupHunterPathLogic();
   setupInteractiveSounds();
   setupFormSubmission();
-
-  // Secret Hunter Admin Hotline: Ctrl + Shift + A (or Cmd + Shift + A)
-  window.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
-      e.preventDefault();
-      window.location.href = 'admin.html';
-    }
-  });
 });
