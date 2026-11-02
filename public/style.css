@@ -1543,3 +1543,21 @@ body::before {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+.footer-legal-links {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+}
+
+.footer-legal-links a {
+  color: var(--cyan-dim);
+  text-decoration: none;
+}
+
+.footer-legal-links a:hover,
+.footer-legal-links a:focus-visible {
+  color: var(--cyan-primary);
+  text-decoration: underline;
+}

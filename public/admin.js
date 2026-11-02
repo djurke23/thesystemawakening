@@ -155,9 +155,13 @@ function renderTable() {
   emptyState.style.display = 'none';
   tbody.innerHTML = filtered.map(a => {
     const pathsHtml = (Array.isArray(a.hunterPath) ? a.hunterPath : []).map(p => `<span class="badge-path">${escapeHtml(p)}</span>`).join('');
-    const dateFormatted = new Date(a.createdAt).toLocaleDateString([], {
+    const createdAt = new Date(a.createdAt);
+    const dateFormatted = isNaN(createdAt) ? '-' : createdAt.toLocaleDateString('en-GB', {
+      day: '2-digit',
       month: 'short',
-      day: 'numeric',
+      year: 'numeric'
+    });
+    const timeFormatted = isNaN(createdAt) ? '' : createdAt.toLocaleTimeString('en-GB', {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -165,6 +169,7 @@ function renderTable() {
     return `
       <tr>
         <td style="font-family: var(--font-mono); font-weight: 700; color: var(--cyan-primary);">${escapeHtml(a.id)}</td>
+        <td style="font-family: var(--font-mono); font-size: 0.8rem; color: #bdefff; white-space: nowrap;">${escapeHtml(dateFormatted)}<br><span style="color: var(--text-dim);">${escapeHtml(timeFormatted)}</span></td>
         <td style="font-weight: 600; color: #fff;">${escapeHtml(a.discordUsername)}</td>
         <td><span class="badge-device">${escapeHtml(a.device)}</span></td>
         <td>${pathsHtml}</td>
@@ -172,7 +177,6 @@ function renderTable() {
         <td style="color: ${a.reportBugs ? 'var(--neon-green)' : 'var(--text-dim)'};">${a.reportBugs ? '✓ Yes' : 'No'}</td>
         <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(a.email || '-')}</td>
         <td style="font-weight: 600; color: #bdefff;">${escapeHtml(a.source || '-')}</td>
-        <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim);">${escapeHtml(dateFormatted)}</td>
         <td>
           <button type="button" class="delete-action-btn" title="Delete Candidate" data-delete-id="${escapeHtml(a.id)}">
             🗑
